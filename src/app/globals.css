@@ -61,6 +61,41 @@ body {
   animation: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
+/* GPS position marker (Google-Maps-style blue dot). */
+.gps-dot {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #2f6fed;
+  border: 3px solid #fff;
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.gps-dot::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: #2f6fed;
+  opacity: 0.35;
+  animation: gpspulse 2.4s ease-out infinite;
+}
+@keyframes gpspulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  70% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 /* Click popup with Google Maps / Street View links. */
 .sv-popup-wrap .leaflet-popup-content-wrapper {
   background: var(--color-paper);

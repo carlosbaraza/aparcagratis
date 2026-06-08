@@ -27,6 +27,24 @@ interface MapViewProps {
 
 const MADRID_CENTER: [number, number] = [40.4168, -3.7038];
 
+/** Rough distance in km between two lat/lng points (haversine). */
+function distanceKm(a: [number, number], b: [number, number]): number {
+  const R = 6371;
+  const dLat = ((b[0] - a[0]) * Math.PI) / 180;
+  const dLng = ((b[1] - a[1]) * Math.PI) / 180;
+  const lat1 = (a[0] * Math.PI) / 180;
+  const lat2 = (b[0] * Math.PI) / 180;
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+/** Within ~60 km of central Madrid. */
+function isNearMadrid(lat: number, lng: number): boolean {
+  return distanceKm(MADRID_CENTER, [lat, lng]) < 60;
+}
+
 const CARTO_ATTR =
   'Datos: <a href="https://geoportal.madrid.es">Ayto. de Madrid (SER)</a> · &copy; <a href="https://carto.com/">CARTO</a> · <a href="https://www.openstreetmap.org/copyright">OSM</a>';
 const PNOA_ATTR =
@@ -96,15 +114,23 @@ export default function MapView({ enabled, showZbe, basemap }: MapViewProps) {
   const baseRef = useRef<LayerGroup | null>(null);
   const basemapRef = useRef<Basemap>(basemap);
   const libreLoaded = useRef(false);
+  // Leaflet module + geolocation layers.
+  const lRef = useRef<typeof import("leaflet") | null>(null);
+  const userMarkerRef = useRef<Leaflet.Marker | null>(null);
+  const accuracyRef = useRef<Leaflet.Circle | null>(null);
+  const watchIdRef = useRef<number | null>(null);
   // Flips true once the Leaflet map has finished initialising, so layer effects
   // that ran before the (async) map setup can re-run and actually attach.
   const [ready, setReady] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [located, setLocated] = useState(false);
 
   // Initialise the Leaflet map once.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const L = await import("leaflet");
+      lRef.current = L;
       if (cancelled || !containerRef.current || mapRef.current) return;
 
       const map = L.map(containerRef.current, {
@@ -129,10 +155,18 @@ export default function MapView({ enabled, showZbe, basemap }: MapViewProps) {
       mapRef.current = map;
       await loadRegulated(L);
       applyVisibility();
-      if (!cancelled) setReady(true);
+      if (!cancelled) {
+        setReady(true);
+        // Auto-locate on load: show the dot and centre only if near Madrid.
+        locateUser({ recenter: "ifNear" });
+      }
     })();
     return () => {
       cancelled = true;
+      if (watchIdRef.current != null && typeof navigator !== "undefined") {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
       mapRef.current?.remove();
       mapRef.current = null;
     };
@@ -190,6 +224,78 @@ export default function MapView({ enabled, showZbe, basemap }: MapViewProps) {
         map.removeLayer(layer);
       }
     });
+  }
+
+  // ── Geolocation (Google-Maps-style blue dot) ──────────────────────────────
+  type Recenter = "none" | "always" | "ifNear";
+
+  function showUserPosition(pos: GeolocationPosition, recenter: Recenter) {
+    const L = lRef.current;
+    const map = mapRef.current;
+    if (!L || !map) return;
+    const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+    const ll: [number, number] = [lat, lng];
+
+    if (!userMarkerRef.current) {
+      userMarkerRef.current = L.marker(ll, {
+        icon: L.divIcon({
+          className: "",
+          html: '<div class="gps-dot"></div>',
+          iconSize: [20, 20],
+          iconAnchor: [10, 10],
+        }),
+        interactive: false,
+        keyboard: false,
+        zIndexOffset: 1000,
+      }).addTo(map);
+      accuracyRef.current = L.circle(ll, {
+        radius: accuracy,
+        renderer: rendererRef.current ?? undefined,
+        color: "#2F6FED",
+        weight: 1,
+        opacity: 0.4,
+        fillColor: "#2F6FED",
+        fillOpacity: 0.1,
+        interactive: false,
+      }).addTo(map);
+    } else {
+      userMarkerRef.current.setLatLng(ll);
+      accuracyRef.current?.setLatLng(ll);
+      accuracyRef.current?.setRadius(accuracy);
+    }
+    setLocated(true);
+
+    if (recenter === "always" || (recenter === "ifNear" && isNearMadrid(lat, lng))) {
+      map.flyTo(ll, Math.max(map.getZoom(), 16), { duration: 0.8 });
+    }
+  }
+
+  function startWatch() {
+    if (
+      watchIdRef.current != null ||
+      typeof navigator === "undefined" ||
+      !navigator.geolocation
+    )
+      return;
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (pos) => showUserPosition(pos, "none"),
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 10_000 },
+    );
+  }
+
+  function locateUser({ recenter }: { recenter: Recenter }) {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        showUserPosition(pos, recenter);
+        setLocating(false);
+        startWatch();
+      },
+      () => setLocating(false),
+      { enableHighAccuracy: true, timeout: 10_000, maximumAge: 30_000 },
+    );
   }
 
   // React to filter changes.
@@ -260,5 +366,29 @@ export default function MapView({ enabled, showZbe, basemap }: MapViewProps) {
     };
   }, [showZbe, ready]);
 
-  return <div ref={containerRef} className="absolute inset-0 h-full w-full" />;
+  return (
+    <>
+      <div ref={containerRef} className="absolute inset-0 h-full w-full" />
+      <button
+        type="button"
+        onClick={() => locateUser({ recenter: "always" })}
+        aria-label="Centrar en mi ubicación"
+        title="Centrar en mi ubicación"
+        className={`pointer-events-auto absolute bottom-28 right-3 z-[1100] flex h-11 w-11 items-center justify-center rounded-full border border-line bg-paper/95 shadow-lg backdrop-blur transition hover:bg-paper sm:bottom-8 ${
+          locating ? "animate-pulse text-azul" : located ? "text-azul" : "text-ink"
+        }`}
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="6" stroke="currentColor" strokeWidth="1.7" />
+          <circle cx="12" cy="12" r="1.6" fill="currentColor" />
+          <path
+            d="M12 1.5v3.5M12 19v3.5M1.5 12h3.5M19 12h3.5"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+          />
+        </svg>
+      </button>
+    </>
+  );
 }

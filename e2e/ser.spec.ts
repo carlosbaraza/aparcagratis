@@ -122,6 +122,20 @@ test("zone filters can be toggled on and off", async ({ page }) => {
   await expect(verde).toHaveAttribute("aria-pressed", "false");
 });
 
+test.describe("geolocation", () => {
+  test.use({
+    permissions: ["geolocation"],
+    geolocation: { latitude: 40.4169, longitude: -3.7035 }, // Puerta del Sol
+  });
+
+  test("shows the GPS blue dot and a recenter button", async ({ page }) => {
+    await expect(page.locator(".gps-dot")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Centrar en mi ubicación" }),
+    ).toBeVisible();
+  });
+});
+
 test.describe("mobile layout", () => {
   test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 

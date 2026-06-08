@@ -41,6 +41,8 @@ cuesta?"**.
 - 🟪 **Detección de calles no reguladas** (banda *libre*, en púrpura): aparcamiento gratuito.
 - 🛰️ **Vista satélite** con ortofoto de alta resolución del IGN para comprobar las plazas.
 - 📍 **Click en el mapa** → abrir ese punto en **Google Maps** o **Street View**.
+- 🔵 **Tu ubicación GPS**: punto azul en vivo, centrado automático si estás cerca de Madrid y
+  botón para recentrar.
 - 📱 **Mobile-first**: navbar + menú, cajón a pantalla completa y accesos rápidos abajo.
 
 <div align="center">
