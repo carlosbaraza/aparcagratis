@@ -33,7 +33,7 @@ test("shows map layers on top and a collapsed price calculator by default", asyn
 test("renders the SER map with tiles and parking bands", async ({ page }) => {
   const tiles = await page.locator(".leaflet-tile").count();
   expect(tiles).toBeGreaterThan(0);
-  await expect(page.locator(".leaflet-container canvas")).toBeVisible();
+  await expect(page.locator(".leaflet-container canvas").first()).toBeVisible();
 });
 
 test("recommends the cheapest zone for a weekday evening (dinner) window", async ({
@@ -88,7 +88,7 @@ test("switches to satellite imagery and keeps the SER bands on top", async ({
       { timeout: 15_000 },
     )
     .toBeGreaterThan(0);
-  await expect(page.locator(".leaflet-container canvas")).toBeVisible();
+  await expect(page.locator(".leaflet-container canvas").first()).toBeVisible();
 });
 
 test("clicking the map offers Google Maps and Street View deep links", async ({
@@ -128,7 +128,7 @@ test.describe("mobile layout", () => {
   test("shows a navbar, bottom shortcuts and a full-screen drawer", async ({
     page,
   }) => {
-    await expect(page.locator(".leaflet-container canvas")).toBeVisible();
+    await expect(page.locator(".leaflet-container canvas").first()).toBeVisible();
     await expect(page.getByRole("button", { name: "Abrir menú" })).toBeVisible();
 
     const shortcuts = page.getByRole("navigation", { name: "Accesos rápidos" });

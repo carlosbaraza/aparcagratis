@@ -1,5 +1,7 @@
 "use client";
 
+import { ParkingMark } from "./Logo";
+
 interface Props {
   onOpen: () => void;
 }
@@ -8,8 +10,11 @@ interface Props {
 export default function MobileNav({ onOpen }: Props) {
   return (
     <header className="pointer-events-auto fixed inset-x-0 top-0 z-[1000] flex items-center justify-between border-b border-line bg-paper/90 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-md">
-      <span className="font-display text-[1.3rem] font-medium leading-none tracking-tight text-ink">
-        aparcagratis
+      <span className="flex items-center gap-2">
+        <ParkingMark className="h-7 w-7 text-[1.05rem]" />
+        <span className="font-display text-[1.3rem] font-medium leading-none tracking-tight text-ink">
+          aparcagratis
+        </span>
       </span>
       <button
         type="button"

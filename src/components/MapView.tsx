@@ -1,7 +1,7 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
 import type {
   Map as LeafletMap,
@@ -96,6 +96,9 @@ export default function MapView({ enabled, showZbe, basemap }: MapViewProps) {
   const baseRef = useRef<LayerGroup | null>(null);
   const basemapRef = useRef<Basemap>(basemap);
   const libreLoaded = useRef(false);
+  // Flips true once the Leaflet map has finished initialising, so layer effects
+  // that ran before the (async) map setup can re-run and actually attach.
+  const [ready, setReady] = useState(false);
 
   // Initialise the Leaflet map once.
   useEffect(() => {
@@ -126,6 +129,7 @@ export default function MapView({ enabled, showZbe, basemap }: MapViewProps) {
       mapRef.current = map;
       await loadRegulated(L);
       applyVisibility();
+      if (!cancelled) setReady(true);
     })();
     return () => {
       cancelled = true;
@@ -231,17 +235,22 @@ export default function MapView({ enabled, showZbe, basemap }: MapViewProps) {
           const data: GeoJSON.FeatureCollection = await res.json();
           if (cancelled) return;
           zbeRef.current = L.geoJSON(data, {
+            // Share the bands' canvas renderer so the map keeps a single canvas.
+            renderer: rendererRef.current ?? undefined,
+            // Bold dashed outline so the boundary reads clearly without tinting
+            // the whole city (the Madrid ZBE covers almost the entire centre).
             style: {
-              color: "#1b1a16",
-              weight: 1.5,
-              opacity: 0.6,
-              fillColor: "#1b1a16",
-              fillOpacity: 0.04,
-              dashArray: "6 4",
+              color: "#D6336C",
+              weight: 3,
+              opacity: 0.95,
+              fillColor: "#D6336C",
+              fillOpacity: 0.05,
+              dashArray: "10 6",
             },
-          });
+          } as Leaflet.GeoJSONOptions);
         }
         zbeRef.current.addTo(map);
+        zbeRef.current.bringToFront();
       } else if (zbeRef.current && map.hasLayer(zbeRef.current)) {
         map.removeLayer(zbeRef.current);
       }
@@ -249,7 +258,7 @@ export default function MapView({ enabled, showZbe, basemap }: MapViewProps) {
     return () => {
       cancelled = true;
     };
-  }, [showZbe]);
+  }, [showZbe, ready]);
 
   return <div ref={containerRef} className="absolute inset-0 h-full w-full" />;
 }

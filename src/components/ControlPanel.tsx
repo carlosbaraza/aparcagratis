@@ -6,6 +6,7 @@ import { ZONE_META } from "@/lib/ser/zones";
 import { DGT_OPTIONS } from "@/lib/ser/dgt";
 import { evaluateParking, type ParkingDecision } from "@/lib/ser/decision";
 import type { Basemap } from "./MapView";
+import { ParkingMark } from "./Logo";
 
 interface Props {
   enabled: Record<ZoneType, boolean>;
@@ -113,10 +114,13 @@ export default function ControlPanel(props: Props) {
     <aside className={asideClass}>
       <header className="flex items-start justify-between gap-3 px-5 pb-3 pt-5">
         <div>
-          <h1 className="font-display text-[1.7rem] font-medium leading-none tracking-tight text-ink">
-            aparcagratis
+          <h1 className="flex items-center gap-2.5">
+            <ParkingMark className="h-8 w-8 text-[1.25rem]" />
+            <span className="font-display text-[1.7rem] font-medium leading-none tracking-tight text-ink">
+              aparcagratis
+            </span>
           </h1>
-          <p className="mt-1.5 text-[0.78rem] leading-snug text-ink-soft">
+          <p className="mt-2 text-[0.78rem] leading-snug text-ink-soft">
             Zonas SER de Madrid. Mira dónde puedes aparcar según tu etiqueta y
             horario, y cuánto cuesta.
           </p>
