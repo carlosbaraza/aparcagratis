@@ -1,26 +1,121 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-paper: #f6f3ec;
+  --color-paper-2: #efe9dd;
+  --color-ink: #1b1a16;
+  --color-ink-soft: #5b574c;
+  --color-line: #ddd5c5;
+
+  --color-azul: #2f6fed;
+  --color-verde: #1f9d55;
+  --color-alta: #0ea5a5;
+  --color-naranja: #e8702a;
+  --color-rojo: #d93838;
+  --color-libre: #7c3aed;
+
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Leaflet container inherits the paper backdrop so empty tiles blend in. */
+.leaflet-container {
+  background: var(--color-paper) !important;
+  font-family: var(--font-sans), sans-serif;
+}
+
+.leaflet-bar a,
+.leaflet-control-attribution {
+  color: var(--color-ink-soft) !important;
+}
+
+/* Thin, refined scrollbars in the control panel. */
+.panel-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-rise {
+  animation: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* Click popup with Google Maps / Street View links. */
+.sv-popup-wrap .leaflet-popup-content-wrapper {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  border: 1px solid var(--color-line);
+  border-radius: 14px;
+  box-shadow: 0 10px 34px -12px rgba(27, 26, 22, 0.45);
+}
+.sv-popup-wrap .leaflet-popup-tip {
+  background: var(--color-paper);
+  border: 1px solid var(--color-line);
+}
+.sv-popup-wrap .leaflet-popup-content {
+  margin: 0.7rem 0.85rem;
+}
+.sv-popup {
+  font-family: var(--font-sans), sans-serif;
+  min-width: 168px;
+}
+.sv-title {
+  font-weight: 600;
+  font-size: 0.84rem;
+  line-height: 1.1;
+}
+.sv-coords {
+  margin: 0.15rem 0 0.45rem;
+  font-size: 0.64rem;
+  color: var(--color-ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+.sv-popup a.sv-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 9px;
+  font-size: 0.76rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: 0.15s ease;
+}
+.sv-popup a.sv-btn.sv-btn-maps {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+.sv-popup a.sv-btn.sv-btn-maps:hover {
+  opacity: 0.9;
+}
+.sv-popup a.sv-btn.sv-btn-pano {
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-line);
+}
+.sv-popup a.sv-btn.sv-btn-pano:hover {
+  border-color: var(--color-ink);
 }

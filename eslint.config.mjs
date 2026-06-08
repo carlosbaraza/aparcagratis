@@ -11,8 +11,14 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "coverage/**",
     "next-env.d.ts",
   ]),
+  {
+    // Node tooling scripts deal with loosely-typed external (ArcGIS) JSON.
+    files: ["scripts/**/*.ts"],
+    rules: { "@typescript-eslint/no-explicit-any": "off" },
+  },
 ]);
 
 export default eslintConfig;

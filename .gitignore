@@ -39,3 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# testing & coverage
+/coverage
+/test-results
+/playwright-report
+/blob-report
+/.playwright
+
+# raw GIS downloads (large, regenerable via `pnpm build:data`).
+# The slim app-facing files in public/data/ ARE committed.
+/data/raw
