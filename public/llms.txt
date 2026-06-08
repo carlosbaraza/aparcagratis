@@ -1,0 +1,23 @@
+# aparcagratis
+
+> Mapa web interactivo de las zonas de estacionamiento regulado (SER) de Madrid. Muestra todas las bandas de aparcamiento (verde, azul, alta rotación, libre) sobre un mapa abierto y calcula, según la etiqueta ambiental DGT y el horario, si puedes aparcar y cuánto cuesta.
+
+aparcagratis es una aplicación estática (Next.js + TypeScript) servida en GitHub Pages. Toda la lógica corre en el cliente; los datos provienen de fuentes oficiales del Ayuntamiento de Madrid. No tiene backend, registro ni cookies.
+
+Resumen de reglas del SER que implementa la app:
+- Horario: lunes–viernes 9:00–21:00, sábado 9:00–15:00, agosto 9:00–15:00 (lun–sáb). Domingos y festivos: gratis.
+- Etiqueta DGT: CERO gratis; ECO −75%; C −10%; B +20%; sin distintivo no puede estacionar en zona SER en horario regulado.
+- Zona azul: alta rotación, máx. 4 h. Zona verde: residentes / corta estancia, no residentes máx. 2 h. Banda "Gris" = libre (no regulada, gratis).
+- Fuera del horario SER el aparcamiento es gratuito para todos.
+
+## Enlaces
+
+- [Aplicación en vivo](https://carlosbaraza.github.io/aparcagratis/): la app interactiva.
+- [Repositorio en GitHub](https://github.com/carlosbaraza/aparcagratis): código fuente (MIT-friendly), README y scripts.
+- [README](https://github.com/carlosbaraza/aparcagratis#readme): visión general, stack y cómo funciona el motor.
+- [Detalle completo para LLMs](https://carlosbaraza.github.io/aparcagratis/llms-full.txt): reglas, tarifas, datos y arquitectura en profundidad.
+
+## Datos oficiales
+
+- [Servicio de Estacionamiento Regulado (SER) — Geoportal de Madrid](https://geoportal.madrid.es/IDEAM_WBGEOPORTAL/dataset.iam?id=9506daa5-e317-11ec-8359-60634c31c0aa): conjunto de datos GIS de las bandas SER.
+- [Portal de datos abiertos del Ayuntamiento de Madrid](https://datos.madrid.es): catálogo abierto (movilidad / SER).

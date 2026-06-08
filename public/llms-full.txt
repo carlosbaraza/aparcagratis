@@ -1,0 +1,79 @@
+# aparcagratis — referencia completa
+
+> Mapa web interactivo de las zonas de estacionamiento regulado (SER) de Madrid. Calcula, según la etiqueta DGT y el horario, si puedes aparcar y cuánto cuesta. App estática (Next.js), datos oficiales del Ayuntamiento de Madrid, sin backend.
+
+URL en vivo: https://carlosbaraza.github.io/aparcagratis/
+Repositorio: https://github.com/carlosbaraza/aparcagratis
+Idioma: español (es-ES). Ámbito: ciudad de Madrid, España.
+
+## Qué resuelve
+
+La pregunta real al aparcar en Madrid no es solo "¿dónde hay sitio?", sino "¿puedo aparcar aquí, a esta hora, con mi coche, y cuánto cuesta?". La app combina la geometría oficial de las bandas SER con un motor de reglas (horario + etiqueta DGT + tarifa) para responderla.
+
+Ejemplo: aparcar de 19:00 a 23:30 un martes en zona verde. El SER cierra a las 21:00, así que se pagan 2 h y las 2 h 30 min restantes son gratis.
+
+## Tipos de zona (campo `Color` del dato oficial)
+
+- Verde: mixta residentes / corta estancia. No residentes máximo 2 h.
+- Azul: alta rotación, cualquier vehículo. Máximo 4 h.
+- Alta Rotación: rotación muy alta, entornos de gran demanda.
+- Naranja: ámbito diferenciado / especial (consultar señalización).
+- Rojo / Reservada: plazas reservadas (carga y descarga u otros usos), no para aparcamiento general.
+- Gris → "Libre": banda NO regulada. Aparcamiento gratuito a cualquier hora. La app la pinta en púrpura.
+
+## Horario del SER (estacionamiento de pago)
+
+- Lunes a viernes: 9:00–21:00.
+- Sábado: 9:00–15:00.
+- Agosto: lunes a sábado 9:00–15:00 (horario reducido).
+- Domingos y festivos: sin servicio → aparcamiento gratuito.
+- Fuera de esas franjas el aparcamiento es gratis para todos los vehículos.
+
+El motor reparte la ventana de aparcamiento minuto a minuto en "de pago" (dentro del horario SER) vs "gratis" (fuera), gestionando el cruce de medianoche.
+
+## Etiqueta ambiental DGT (modificadores de tarifa)
+
+- CERO (0 emisiones): gratis en toda la zona SER.
+- ECO: −75 % sobre la tarifa.
+- C: −10 %.
+- B: +20 %.
+- Sin distintivo (categoría A): no puede estacionar en zona SER en horario regulado (sí fuera de horario).
+
+## Tarifas (referencia 2025, orientativas — verificar señalización)
+
+Coste por tramos (interpolación lineal), no residente:
+
+Zona azul (máx. 4 h): 5 min 0,05 € · 20 min 0,25 € · 30 min 0,40 € · 1 h 1,10 € · 2 h 2,75 € · 4 h (tope) 8,20 €.
+Zona verde (no residente, máx. 2 h): 5 min 0,15 € · 20 min 0,50 € · 30 min 0,90 € · 1 h 2,05 € · 2 h (tope) 4,10 €.
+Residente en su zona verde: tarifa plana ~0,20 €/hora, sin límite de tiempo.
+
+El coste final = coste base por tramos × modificador de la etiqueta DGT, aplicado solo a los minutos en horario de pago.
+
+## Datos (procedencia)
+
+- Servicio ArcGIS REST del Geoportal del Ayuntamiento de Madrid:
+  https://sigma.madrid.es/hosted/rest/services/GEOPORTAL/SERVICIO_DE_ESTACIONAMIENTO_REGULADO/MapServer
+  - Capa 4: bandas de aparcamiento (polilíneas, campo `Color`) — 87.616 geometrías.
+  - Capa 3: límite de barrios de la Zona SER.
+  - Capas 60–62: Zonas de Bajas Emisiones (ZBE / ZBEDEP Centro, Plaza Elíptica, Madrid ZBE).
+- Dato nativo en EPSG:25830 (ETRS89 / UTM huso 30N); se solicita `outSR=4326` (WGS84). La capa de bandas tiene un límite de 2.000 registros por respuesta, por lo que se pagina con `resultOffset`.
+- Ficha de catálogo abierto: https://geoportal.madrid.es/IDEAM_WBGEOPORTAL/dataset.iam?id=9506daa5-e317-11ec-8359-60634c31c0aa
+- Mapa base: CARTO y ortofoto PNOA del IGN España. Las tarifas/horarios se centralizan en un único archivo del repositorio para poder actualizarse fácilmente.
+
+## Funcionalidades de la app
+
+- Overlay de todas las bandas SER, filtrable por color de zona.
+- Calculadora: introduces etiqueta DGT + horario (+ residente) y obtienes si puedes aparcar, la zona más barata, el coste final y el desglose pago/gratis.
+- Detección de calles no reguladas (banda libre / púrpura).
+- Vista satélite (ortofoto PNOA del IGN) para comprobar las plazas.
+- Click en el mapa → enlaces a Google Maps y Street View de ese punto.
+- Geolocalización: punto azul en vivo, centrado automático si estás cerca de Madrid y botón para recentrar.
+- Capa de Zonas de Bajas Emisiones (ZBE).
+
+## Stack y arquitectura
+
+Next.js 16 (App Router, export estático) · TypeScript · Tailwind CSS 4 · Leaflet (render canvas) · Vitest + Playwright. Desplegado en GitHub Pages vía GitHub Actions. Sin servidor, sin base de datos, sin cookies.
+
+## Aviso
+
+Las tarifas y horarios son orientativos y pueden cambiar. La herramienta es informativa; verifica siempre la señalización in situ. Datos de aparcamiento © Ayuntamiento de Madrid; ortofoto © IGN España; mapa base © CARTO / OpenStreetMap.
