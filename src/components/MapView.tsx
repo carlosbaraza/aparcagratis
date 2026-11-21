@@ -46,7 +46,7 @@ function isNearMadrid(lat: number, lng: number): boolean {
 }
 
 const CARTO_ATTR =
-  'Datos: <a href="https://geoportal.madrid.es">Ayto. de Madrid (SER)</a> · &copy; <a href="https://carto.com/">CARTO</a> · <a href="https://www.openstreetmap.org/copyright">OSM</a>';
+  'Datos: <a href="https://geoportal.madrid.es">Ayto. de Madrid (SER)</a> · &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attribution/">CARTO</a>';
 const PNOA_ATTR =
   'Datos: <a href="https://geoportal.madrid.es">Ayto. de Madrid (SER)</a> · Ortofoto <a href="https://www.ign.es">PNOA © IGN España</a>';
 
@@ -96,11 +96,12 @@ function makeBaseGroup(L: typeof import("leaflet"), basemap: Basemap): LayerGrou
       { attribution: "Etiquetas © Esri", maxZoom: 19 },
     ).addTo(group);
   } else {
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-      attribution: CARTO_ATTR,
-      maxZoom: 19,
-      subdomains: "abcd",
-    }).addTo(group);
+    const cartoKey = process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY;
+    const keyQuery = cartoKey ? `?key=${encodeURIComponent(cartoKey)}` : "";
+    L.tileLayer(
+      `https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png${keyQuery}`,
+      { attribution: CARTO_ATTR, maxZoom: 19, subdomains: "abcd" },
+    ).addTo(group);
   }
   return group;
 }

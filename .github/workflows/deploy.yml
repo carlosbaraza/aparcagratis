@@ -39,6 +39,8 @@ jobs:
 
       - name: Build static site
         run: pnpm build
+        env:
+          NEXT_PUBLIC_CARTO_BASEMAP_KEY: ${{ secrets.CARTO_BASEMAP_KEY }}
 
       - uses: actions/upload-pages-artifact@v3
         with:
