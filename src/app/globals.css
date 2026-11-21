@@ -40,6 +40,12 @@ body {
   color: var(--color-ink-soft) !important;
 }
 
+@media (width < 40rem) {
+  .leaflet-container .leaflet-bottom {
+    bottom: calc(3.75rem + env(safe-area-inset-bottom));
+  }
+}
+
 /* Thin, refined scrollbars in the control panel. */
 .panel-scroll {
   scrollbar-width: thin;
